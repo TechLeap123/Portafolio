@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Josué Ayala — Frontend Developer | UI & Web Accessibility</title>
+<meta name="description" content="Desarrollador Frontend Junior enfocado en interfaces accesibles, planificadas al detalle y respaldadas por lógica sólida. JavaScript, SQL, Figma.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          base: '#FFFFFF',
+          surface: '#F6F2FC',
+          structure: '#7C3AED',
+          accent: '#9333EA',
+          ink: '#1E1533',
+          muted: '#6E6480',
+          border: '#E4DEF3',
+          live: '#10B981'
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background-color: #FFFFFF; }
+  ::selection { background: #9333EA; color: #FFFFFF; }
+
+  .tag-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+  }
+
+  /* Signature element: semantic landmark blueprint */
+  .landmark-box {
+    position: relative;
+    background: #FFFFFF;
+    border: 1px solid #E4DEF3;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(30, 21, 51, 0.04);
+    transition: border-color 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease;
+  }
+  .landmark-box:hover, .landmark-box.is-active {
+    border-color: #9333EA;
+    box-shadow: 0 6px 20px rgba(147, 51, 234, 0.10);
+  }
+  .landmark-box.is-active { background-color: rgba(124, 58, 237, 0.03); }
+  .landmark-tag {
+    position: absolute;
+    top: -0.55rem;
+    left: 0.7rem;
+    background: #FFFFFF;
+    padding: 0 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: #7C3AED;
+    letter-spacing: 0.02em;
+  }
+  .landmark-box.is-active .landmark-tag { color: #9333EA; }
+
+  @keyframes drawline {
+    from { stroke-dashoffset: 400; }
+    to { stroke-dashoffset: 0; }
+  }
+  .draw-path {
+    stroke-dasharray: 400;
+    stroke-dashoffset: 400;
+    animation: drawline 1.8s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.7s ease forwards; opacity: 0; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.25s; }
+  .delay-3 { animation-delay: 0.4s; }
+  .delay-4 { animation-delay: 0.55s; }
+
+  .status-dot {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+    animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  .grid-lines {
+    background-image:
+      linear-gradient(to right, rgba(124,58,237,0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(124,58,237,0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .card-hover { transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; }
+  .card-hover:hover { transform: translateY(-4px); }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid #7C3AED;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    html { scroll-behavior: auto; }
+  }
+
+  .nav-link { position: relative; }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -4px;
+    width: 0; height: 1px;
+    background: #9333EA;
+    transition: width 0.25s ease;
+  }
+  .nav-link:hover::after { width: 100%; }
+
+  .hero-glow {
+    background: radial-gradient(60% 50% at 70% 30%, rgba(147, 51, 234, 0.10), transparent 70%),
+                radial-gradient(50% 40% at 15% 20%, rgba(124, 58, 237, 0.10), transparent 70%);
+  }
+</style>
+</head>
+<body class="font-body text-ink antialiased">
+
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-md">Saltar al contenido principal</a>
+
+<!-- ============ NAV ============ -->
+<header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-white/85 border-b border-border">
+  <nav class="max-w-6xl mx-auto flex items-center justify-between px-6 py-4" aria-label="Navegación principal">
+    <a href="#hero" class="font-display font-semibold text-lg tracking-tight flex items-center gap-2">
+      JOSUÉ AYALA<span class="text-structure">.dev</span>
+      <span class="w-2 h-2 rounded-full bg-live status-dot" aria-hidden="true"></span>
+      <span class="sr-only">Disponible para oportunidades</span>
+    </a>
+    <ul class="hidden md:flex items-center gap-8 text-sm text-muted">
+      <li><a href="#sobre-mi" class="nav-link hover:text-ink transition-colors">Sobre mí</a></li>
+      <li><a href="#que-hago" class="nav-link hover:text-ink transition-colors">Qué hago</a></li>
+      <li><a href="#proyectos" class="nav-link hover:text-ink transition-colors">Proyectos</a></li>
+      <li><a href="#contacto" class="nav-link hover:text-ink transition-colors">Contacto</a></li>
+    </ul>
+    <a href="#contacto" class="hidden md:inline-flex items-center gap-2 bg-accent text-white font-semibold text-sm px-4 py-2 rounded-md hover:bg-accent/90 transition-colors">
+      Hablemos
+    </a>
+    <button id="menu-btn" class="md:hidden text-ink" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú de navegación">
+      <svg id="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </nav>
+  <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-white px-6 py-4">
+    <ul class="flex flex-col gap-4 text-sm text-muted">
+      <li><a href="#sobre-mi" class="mobile-link block py-1">Sobre mí</a></li>
+      <li><a href="#que-hago" class="mobile-link block py-1">Qué hago</a></li>
+      <li><a href="#proyectos" class="mobile-link block py-1">Proyectos</a></li>
+      <li><a href="#contacto" class="mobile-link block py-1 text-accent font-medium">Contacto</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section id="hero" class="relative pt-36 pb-24 md:pt-44 md:pb-32 px-6 overflow-hidden grid-lines">
+  <div class="absolute inset-0 hero-glow pointer-events-none"></div>
+
+  <div class="relative max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+    <div>
+      <p class="tag-badge fade-up inline-block text-accent border border-accent/30 bg-accent/5 rounded-full px-3 py-1 mb-6">
+        &lt;header role="banner"&gt; · Disponible para roles Junior/Trainee
+      </p>
+      <h1 class="fade-up delay-1 font-display font-semibold text-4xl sm:text-5xl lg:text-6xl leading-[1.1] tracking-tight">
+        Interfaces accesibles,<br>
+        <span class="text-structure">planificadas al detalle.</span>
+      </h1>
+      <p class="fade-up delay-2 mt-6 text-lg text-muted max-w-xl leading-relaxed">
+        Soy <span class="text-ink font-medium">Josué Ayala</span>, Desarrollador Frontend. Transformo requerimientos complejos e ideas en Figma en interfaces funcionales, estructuradas en JavaScript y bases de datos relacionales.
+      </p>
+      <div class="fade-up delay-3 mt-9 flex flex-wrap gap-4">
+        <a href="#proyectos" class="bg-accent text-white font-semibold px-6 py-3 rounded-md hover:bg-accent/90 transition-colors shadow-sm shadow-accent/20">
+          Ver proyectos
+        </a>
+        <a href="#contacto" class="border border-border text-ink px-6 py-3 rounded-md hover:border-structure hover:text-structure transition-colors">
+          Contactarme
+        </a>
+      </div>
+      <div class="fade-up delay-4 mt-10 flex items-center gap-6 text-sm text-muted">
+        <span class="font-mono text-xs">Estratégico</span>
+        <span class="w-1 h-1 rounded-full bg-border"></span>
+        <span class="font-mono text-xs">Accesible</span>
+        <span class="w-1 h-1 rounded-full bg-border"></span>
+        <span class="font-mono text-xs">Confiable</span>
+      </div>
+    </div>
+
+    <!-- Signature element: interactive semantic landmark blueprint -->
+    <div class="fade-up delay-2 relative" role="img" aria-label="Diagrama de una estructura HTML semántica, mostrando las regiones header, nav, main con article y aside, y footer">
+      <div class="landmark-box p-4 flex flex-col gap-3">
+        <span class="landmark-tag">&lt;header&gt;</span>
+        <div class="h-6"></div>
+        <div class="landmark-box p-3 flex gap-3">
+          <span class="landmark-tag">&lt;nav&gt;</span>
+          <div class="h-3 w-16 bg-border rounded"></div>
+          <div class="h-3 w-16 bg-border rounded"></div>
+          <div class="h-3 w-16 bg-border rounded"></div>
+        </div>
+        <div class="landmark-box is-active p-4 grid grid-cols-3 gap-3 mt-2">
+          <span class="landmark-tag">&lt;main&gt;</span>
+          <div class="col-span-2 landmark-box p-3 flex flex-col gap-2">
+            <span class="landmark-tag">&lt;article&gt;</span>
+            <div class="h-3 w-3/4 bg-structure/30 rounded mt-2"></div>
+            <div class="h-2 w-full bg-border rounded"></div>
+            <div class="h-2 w-5/6 bg-border rounded"></div>
+            <div class="h-2 w-2/3 bg-border rounded"></div>
+          </div>
+          <div class="landmark-box p-3 flex flex-col gap-2">
+            <span class="landmark-tag">&lt;aside&gt;</span>
+            <div class="h-2 w-full bg-border rounded mt-2"></div>
+            <div class="h-2 w-3/4 bg-border rounded"></div>
+          </div>
+        </div>
+        <div class="landmark-box p-3 flex items-center gap-2 mt-2">
+          <span class="landmark-tag">&lt;footer&gt;</span>
+          <div class="h-2 w-1/3 bg-border rounded"></div>
+        </div>
+      </div>
+      <p class="mt-4 text-xs text-muted font-mono text-center">a11y tree — así planifico cada interfaz antes de escribir una línea de UI</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOBRE MÍ ============ -->
+<section id="sobre-mi" class="py-24 px-6 border-t border-border">
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-[0.9fr_1.1fr] gap-14">
+    <div>
+      <p class="tag-badge text-structure mb-3">&lt;section aria-label="sobre-mi"&gt;</p>
+      <h2 class="font-display font-semibold text-3xl sm:text-4xl tracking-tight">Sobre mí</h2>
+    </div>
+    <div class="space-y-6 text-muted leading-relaxed text-[1.05rem]">
+      <p>
+        Soy Desarrollador Web enfocado en crear interfaces web accesibles, responsivas y atractivas <span class="text-ink">sin comprometer la lógica del código</span>. Me especializo en transformar requerimientos complejos e ideas de Figma en aplicaciones funcionales, estructuradas en JavaScript y bases de datos relacionales.
+      </p>
+      <p>
+        Mi enfoque de trabajo prioriza la <span class="text-ink">planificación detallada</span>, la comunicación transparente en equipo y la búsqueda de soluciones predecibles ante imprevistos técnicos — antes de escribir código, planifico la estructura como quien traza un plano.
+      </p>
+      <div class="pt-4 flex flex-wrap gap-2">
+        <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">JavaScript</span>
+        <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">SQL</span>
+        <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">Figma</span>
+        <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">HTML5 semántico</span>
+        <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">Accesibilidad (A11y)</span>
+        <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">CSS responsivo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUÉ HAGO ============ -->
+<section id="que-hago" class="py-24 px-6 border-t border-border bg-surface">
+  <div class="max-w-6xl mx-auto">
+    <p class="tag-badge text-structure mb-3">&lt;section aria-label="que-hago"&gt;</p>
+    <h2 class="font-display font-semibold text-3xl sm:text-4xl tracking-tight mb-4">Qué hago</h2>
+    <p class="text-muted max-w-2xl mb-14">Tres territorios donde combino diseño, lógica y comunicación para entregar productos web predecibles y accesibles.</p>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="landmark-box card-hover p-7">
+        <span class="landmark-tag">01 — a11y</span>
+        <h3 class="font-display font-semibold text-xl mt-4 mb-3">Accesibilidad & Usabilidad Web</h3>
+        <p class="text-muted text-sm leading-relaxed">
+          Construyo interfaces responsivas pensadas para todas las personas: navegación por teclado, contraste correcto, HTML semántico y JavaScript nativo que no depende de mouse ni de suposiciones.
+        </p>
+      </div>
+      <div class="landmark-box card-hover p-7">
+        <span class="landmark-tag">02 — data</span>
+        <h3 class="font-display font-semibold text-xl mt-4 mb-3">Lógica & Integridad de Datos</h3>
+        <p class="text-muted text-sm leading-relaxed">
+          Diseño estructuras de datos y bases de datos relacionales en SQL que sostienen la interfaz, cuidando que la lógica de negocio y el flujo de datos sean consistentes de punta a punta.
+        </p>
+      </div>
+      <div class="landmark-box card-hover p-7">
+        <span class="landmark-tag">03 — team</span>
+        <h3 class="font-display font-semibold text-xl mt-4 mb-3">Metodología & Trabajo en Equipo</h3>
+        <p class="text-muted text-sm leading-relaxed">
+          Planifico antes de picar código: de Figma a componentes, con comunicación transparente que hace las entregas predecibles y reduce sorpresas de último momento.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROYECTOS ============ -->
+<section id="proyectos" class="py-24 px-6 border-t border-border">
+  <div class="max-w-6xl mx-auto">
+    <p class="tag-badge text-structure mb-3">&lt;section aria-label="proyectos"&gt;</p>
+    <h2 class="font-display font-semibold text-3xl sm:text-4xl tracking-tight mb-4">Proyectos</h2>
+    <p class="text-muted max-w-2xl mb-14">Una muestra del trabajo detrás de la marca: de la lógica de examen a plataformas completas de empleabilidad.</p>
+
+    <div class="grid md:grid-cols-2 gap-8">
+
+      <article class="landmark-box card-hover flex flex-col">
+        <span class="landmark-tag ml-4">&lt;article&gt;</span>
+        <div class="p-7 flex flex-col flex-1">
+          <div class="flex items-center justify-between mb-4 gap-3">
+            <h3 class="font-display font-semibold text-xl">Simulador de examen TOEIC</h3>
+            <span class="tag-badge text-accent whitespace-nowrap">JS · Rust</span>
+          </div>
+          <p class="text-muted text-sm leading-relaxed flex-1">
+            Simulador interactivo de examen TOEIC construido en JavaScript nativo y empaquetado como aplicación de escritorio con Rust y Tauri, con foco especial en accesibilidad web: navegación por teclado, temporización clara y estructura semántica para lectores de pantalla.
+          </p>
+          <div class="flex flex-wrap gap-2 mt-6">
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">JavaScript</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">Rust</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">Tauri</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">Accesibilidad</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="landmark-box card-hover flex flex-col">
+        <span class="landmark-tag ml-4">&lt;article&gt;</span>
+        <div class="p-7 flex flex-col flex-1">
+          <div class="flex items-center justify-between mb-4 gap-3">
+            <h3 class="font-display font-semibold text-xl">Sistema de Admisión de Centro Escolar</h3>
+            <span class="tag-badge text-structure border border-structure/30 bg-structure/5 rounded-full px-2 py-0.5 whitespace-nowrap">En desarrollo</span>
+          </div>
+          <p class="text-muted text-sm leading-relaxed flex-1">
+            Modelado de negocio y arquitectura de base de datos SQL para un sistema de inscripción y admisión escolar, con prototipado completo de la experiencia de usuario en Figma antes de la implementación.
+          </p>
+          <div class="flex flex-wrap gap-2 mt-6">
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">SQL</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">Figma / UI-UX</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">Modelado de negocio</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="landmark-box card-hover flex flex-col md:col-span-2">
+        <span class="landmark-tag ml-4">&lt;article&gt;</span>
+        <div class="p-7 flex flex-col flex-1">
+          <div class="flex items-center justify-between mb-4 gap-3">
+            <h3 class="font-display font-semibold text-xl">Ask U</h3>
+            <span class="tag-badge text-accent whitespace-nowrap">JS · jsPDF · html2pdf</span>
+          </div>
+          <p class="text-muted text-sm leading-relaxed mb-6">
+            Plataforma de empleabilidad que prepara, evalúa y presenta el potencial profesional de los candidatos. Construida con JavaScript nativo, HTML y CSS, con generación de documentos mediante jsPDF y html2pdf, organizada en tres módulos:
+          </p>
+
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-sm border-collapse">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="text-left font-mono text-xs text-structure font-medium py-2 pr-4">Módulo</th>
+                  <th class="text-left font-mono text-xs text-structure font-medium py-2 pr-4">Función</th>
+                  <th class="text-left font-mono text-xs text-structure font-medium py-2">Propósito</th>
+                </tr>
+              </thead>
+              <tbody class="text-muted">
+                <tr class="border-b border-border/60">
+                  <td class="py-3 pr-4 text-ink font-medium whitespace-nowrap">AskBot 🤖</td>
+                  <td class="py-3 pr-4">Entrevistas</td>
+                  <td class="py-3">Simular entrevistas y evaluar las respuestas del candidato</td>
+                </tr>
+                <tr class="border-b border-border/60">
+                  <td class="py-3 pr-4 text-ink font-medium whitespace-nowrap">SkillUp 🧠</td>
+                  <td class="py-3 pr-4">Pruebas</td>
+                  <td class="py-3">Evaluar diferentes habilidades mediante tests</td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4 text-ink font-medium whitespace-nowrap">Portafy 📊</td>
+                  <td class="py-3 pr-4">Reportes</td>
+                  <td class="py-3">Reunir y presentar los resultados del candidato</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">JavaScript</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">HTML / CSS</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">jsPDF</span>
+            <span class="tag-badge border border-border rounded-full px-3 py-1 text-muted">html2pdf</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACTO ============ -->
+<section id="contacto" class="py-24 px-6 border-t border-border bg-surface">
+  <div class="max-w-3xl mx-auto text-center">
+    <p class="tag-badge text-structure mb-3">&lt;section aria-label="contacto"&gt;</p>
+    <h2 class="font-display font-semibold text-3xl sm:text-4xl tracking-tight mb-5">Construyamos algo accesible juntos</h2>
+    <p class="text-muted mb-10 max-w-xl mx-auto">
+      Si tu equipo necesita interfaces bien planificadas y código confiable, hablemos.
+    </p>
+
+    <div class="landmark-box p-8 md:p-10">
+      <span class="landmark-tag">&lt;address aria-label="contacto"&gt;</span>
+      <div class="grid sm:grid-cols-2 gap-6 text-left">
+
+        <a href="mailto:josueisrael1605@gmail.com" class="landmark-box card-hover flex items-center gap-4 p-5">
+          <span class="shrink-0 w-11 h-11 rounded-full bg-structure/10 flex items-center justify-center text-structure">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6l9 6 9-6M3 6v12h18V6"/></svg>
+          </span>
+          <span>
+            <span class="block text-xs font-mono text-muted mb-1">Correo</span>
+            <span class="block text-ink font-medium break-all">josueisrael1605@gmail.com</span>
+          </span>
+        </a>
+
+        <a href="tel:+50300000000" class="landmark-box card-hover flex items-center gap-4 p-5">
+          <span class="shrink-0 w-11 h-11 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </span>
+          <span>
+            <span class="block text-xs font-mono text-muted mb-1">Teléfono</span>
+            <span class="block text-ink font-medium">+503 7896 5325</span>
+          </span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="py-8 px-6 border-t border-border">
+  <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted font-mono">
+    <span>&copy; 2026 Josué Ayala — JOSUÉ AYALA.dev</span>
+    <span>Soyapango, El Salvador</span>
+  </div>
+</footer>
+
+<script>
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  menuBtn.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('hidden') === false;
+    menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.add('hidden');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    });
+  });
+</script>
+
+</body>
+</html>
